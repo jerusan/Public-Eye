@@ -1,0 +1,165 @@
+#include "opencv2/objdetect/objdetect.hpp"
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+
+#include <iostream>
+#include <stdio.h>
+#include <fstream>
+#include <unistd.h>
+
+ using namespace std;
+ using namespace cv;
+
+ /** Function Headers */
+ void detectAndDisplay( Mat frame );
+
+ /** Global variables */
+ //String face_cascade_name = "haarcascade_frontalface_alt.xml";
+ String eyes_cascade_name2 = "haarcascade_righteye_2splits.xml";
+String eyes_cascade_name = "haarcascade_eye2.xml";
+ //CascadeClassifier face_cascade;
+ CascadeClassifier eyes_cascade;
+CascadeClassifier eyes_cascade2;
+ string window_name = "Capture - Eye detection";
+ bool recording = false;
+ bool recordingSetup = false;
+ VideoWriter video;
+ RNG rng(12345);
+ int counter = 0;
+ int noEyeFrames = 0;
+float sumRadius = 0;
+float sumCenterX = 0;
+float sumCenterY = 0;
+float aveCount = 0;
+int startFrames = 0;
+int frame_width;
+int frame_height;
+ 
+
+ /** @function main */
+ int main( int argc, const char** argv )
+ {
+   Mat frame;
+
+   //-- 1. Load the cascades
+   if( !eyes_cascade.load( eyes_cascade_name ) ){ printf("--(!)Error loading\n"); return -1; };
+
+   //-- 2. Read the video stream
+   VideoCapture capture(CV_CAP_XIAPI);
+	//VideoCapture capture;
+	//if (!capture.open(CV_CAP_XIAPI)) cout << "ximea camera not found" << endl;
+	//CvCapture* capture = cvCaptureFromCAM(0);
+   //capture.set(CV_CAP_PROP_FPS, 15);
+
+   if( capture.isOpened() )
+   {
+     while( true )
+     {
+   	capture >> frame;
+
+   //-- 3. Apply the classifier to the frame
+       if( !frame.empty() && !recording)
+       { 	
+		Mat frame_gray;
+
+		  cvtColor( frame, frame_gray, CV_BGR2GRAY );
+		  equalizeHist( frame_gray, frame_gray );
+		    std::vector<Rect> eyes;
+		   eyes_cascade.detectMultiScale( frame_gray, eyes, 1.1, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(410,410) );
+
+			int radius;
+		    for( size_t j = 0; j < eyes.size(); j++ )
+		     {
+			//cout << eyes[j].width;
+			//cout << "\n";
+		       Point center( eyes[j].x + eyes[j].width*0.5, eyes[j].y + eyes[j].height*0.5 );
+		        radius = cvRound( (eyes[j].width + eyes[j].height)*0.25 );
+			//sumRadius += radius;
+			//sumCenterX +=  eyes[j].x + eyes[j].width*0.5;
+			//sumCenterY += eyes[j].y + eyes[j].height*0.5;
+			//aveCount += 1;
+
+		       //circle( frame, center, radius, Scalar( 255, 0, 0 ), 4, 8, 0 );
+		
+		     }
+		if (eyes.size() > 0) {
+				recording = true;
+			
+		}
+		imshow( window_name, frame );
+	}
+	else if(!frame.empty() && recording) {
+		if (!recordingSetup) {
+			counter++;
+			frame_width=   capture.get(CV_CAP_PROP_FRAME_WIDTH);
+   			frame_height=   capture.get(CV_CAP_PROP_FRAME_HEIGHT);
+			
+			std::stringstream sstm;
+			sstm << counter << ".avi"; 
+
+   			video.open(sstm.str(),CV_FOURCC('M','J','P','G'),6, Size(frame_width,frame_height),true);
+			//sumRadius = 0;
+			//sumCenterX= 0;
+			//sumCenterY= 0;
+			//aveCount = 0;
+			
+			recordingSetup = true;
+		}
+		Mat frame_gray;
+
+		  cvtColor( frame, frame_gray, CV_BGR2GRAY );
+		  equalizeHist( frame_gray, frame_gray );
+		    std::vector<Rect> eyes;
+		   eyes_cascade.detectMultiScale( frame_gray, eyes, 1.1, 2, 0 |CV_HAAR_SCALE_IMAGE, Size(410,410) );
+
+
+			
+			int radius;
+
+		    for( size_t j = 0; j < eyes.size(); j++ )
+		     {
+			//cout << eyes[j].width;
+			//cout << "\n";
+		       Point center( eyes[j].x + eyes[j].width*0.5, eyes[j].y + eyes[j].height*0.5 );
+		       radius = cvRound( (eyes[j].width + eyes[j].height)*0.25 );
+			sumRadius += radius;
+			sumCenterX +=  eyes[j].x + eyes[j].width*0.5;
+			sumCenterY += eyes[j].y + eyes[j].height*0.5;
+			aveCount += 1;
+		       //circle( frame, center, radius, Scalar( 255, 0, 0 ), 4, 8, 0 );
+		     }
+		if (eyes.size() > 0) {
+			video.write(frame);
+       			imshow( window_name, frame );
+			noEyeFrames = 0;
+		}
+		else {
+			noEyeFrames++;
+			video.write(frame);
+			if(noEyeFrames > 15)
+			{
+				recording = false;
+				recordingSetup = false;
+				noEyeFrames = 0;
+				video.release();
+
+				std::stringstream oldsstm;
+				oldsstm << counter << ".avi";
+				std::stringstream newsstm;
+				newsstm << "../eyeDemo/data/new/" << counter << ".avi"; 
+				rename(oldsstm.str().c_str(), newsstm.str().c_str());
+				usleep(5000000);
+
+				
+			}
+		}
+	}
+       else
+       { printf(" --(!) No captured frame -- Break!"); break; }
+
+       int c = waitKey(10);
+       if( (char)c == 'c' ) { break; }
+      }
+   }
+   return 0;
+ }

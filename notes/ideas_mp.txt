@@ -1,0 +1,53 @@
+Some 2 cents .-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-.-. 
+
+Displaying a sequence of images creates the illusion of motion (animated images). We could take advantage of this fact 
+in our system to reduce complexity and reduce the amount of memory needed to store data files which are currently video
+files. This would definitely be an interesting solution if the ximea camera we have does not record video, because it 
+can definitely crank out same FPS.
+
+Instead of using motion sensing to engage the system...I think it would be better to have the user press a button to 
+begin the recording. This would ensure that they are aware and intending to interact with the system. The system could
+then use LED's to indicate the states of 'recording' and 'finished recording'.
+
+The mac-mini presently being used seems like it is slightly overkill. There is also an arduino present in the system
+(currently being used for motion detection). It seems like there is no reason these 2 machines can't be combined onto
+a single SoC something like a raspberry pi 3 or a beaglebone black. It seems like an embedded linux computer is exactly
+what we are looking for here. 
+
+I am unsure why Processing was chosen except for the fact that it does seem to handle image/video manipulation quite 
+elegantly. Although processing is based on Java and is not difficult to understand, few to none students are going to 
+be familiar with the language and the domains which it is useful is limited. So being the nerd that I am, I have been
+digging into what it would take to convert the project to C++ (a much more useful and powerful language, especially 
+for an embedded system). Firstly, OpenCV is supports the C++ programming language and the community using these 2 tools
+together is quite large. While reading through existing Processing code, such as the WorkingEyeDemo.pde file I found a
+class by the name of Capture from the processing.video namespace. This class is a datatype for storing and manipulating
+video frames from an attached capture device like a camera. This class is the source of the biggest difficulty we would
+face if we were to convert this project to C++. But then again, it might not even be that difficult. Our ximea camera
+is supports OpenCV and there are tutorials online on how to use the 2 together. With that being said, changing the underlying
+technologies this project is using should be more of a last resort. Although it sounds fun, it could be nasty. Another 
+reason we may consider switching to C++ is that we could then also use a unit testing framework such as Catch or GoogleTest.
+
+Right now the archive we are using is just a folder structure. It would be wise to put our data archive, whether it be 
+images or videos, in a database. I am really interested in learning how to use MongoDB to do exactly this, it seems like
+the perfect fit.
+
+We should consider using a project management tool such as taiga.io. Taiga.io is a free, open-source agile project management
+tool hosted on the cloud quite similar to JIRA. I think the use of such a tool could be really beneficial in regards to the 
+success of this project. And everyone would get to participate in using agile methodologies which is great for experience. 
+I should mention that project hosted on taiga.io are viewable to everybody so it's not a great solution for top secret shit. 
+
+I really think we should work hard to build a solid and useful wiki for this project. The wiki can be accessed though the 
+project's github repository. Not only will the wiki be versioned then but it will be extremely easy and convenient for 
+contributors to add to it. I think documenting our decisions and motivations for things will be important plus it will help
+the next team that works on this greatly. 
+
+The demo's that I have seen from passed groups are kind of creepy looking. It may not be a job for us necessarily but adding 
+some type of filter to the output images/video could do lengths here.
+
+My vision: A raspberry pi 3 running Ubuntu OS on an SD card (or flash if there is an option for it). By using a well known 
+linux distribution, we are pretty much guranteed support for the hardware (xIQ) and software (OpenCV, MongoDB) that we need, 
+not to mention most of us have experience with this operating system already too. I'm pretty sure the raspberry pi 3 is capable 
+of piping data feeds to the display controller with it's graphics and a micro HDMI output. There are atleast 2 usb ports on 
+the pi too and 1 of them will be needed for the xIQ camera. 
+
+~ MP
